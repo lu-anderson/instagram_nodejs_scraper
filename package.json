@@ -4,17 +4,23 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": " node dist/index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lu-anderson/instagram_nodeJS_scraper.git"
+    "url": "git+https://github.com/lu-anderson/instagram_nodejs_scraper.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/lu-anderson/instagram_nodeJS_scraper/issues"
+    "url": "https://github.com/lu-anderson/instagram_nodejs_scraper/issues"
   },
-  "homepage": "https://github.com/lu-anderson/instagram_nodeJS_scraper#readme"
+  "homepage": "https://github.com/lu-anderson/instagram_nodejs_scraper#readme",
+  "dependencies": {
+    "axios": "^0.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^14.11.8"
+  }
 }

@@ -15,5 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const instagram_1 = __importDefault(require("./core/instagram"));
 (() => __awaiter(void 0, void 0, void 0, function* () {
     const instagram = new instagram_1.default();
-    yield instagram.login('gabriel.levistiky', 'computadortop', true).catch(e => console.error(e));
+    //await instagram.login('juliana_dardinha', 'esqueceucontato', true).catch(e => console.error(e))
+    yield instagram.followByUsername('bestall.carlos');
+    //console.log(await instagram.getIdByUsername('rafael_rigoz'))
 }))();

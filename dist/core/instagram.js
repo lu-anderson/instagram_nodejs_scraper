@@ -18,13 +18,15 @@ const axios_1 = __importDefault(require("axios"));
 const endpoints_1 = __importDefault(require("./endpoints"));
 const userAgents_1 = __importDefault(require("./userAgents"));
 class Instagram {
+    constructor() {
+        this.userAgent = userAgents_1.default.ChromeDesktop;
+    }
     login(username, password, saveSession = false) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 let response = yield axios_1.default.get(endpoints_1.default.BASE_URL);
                 let csrftoken = response.headers['set-cookie'].find((cookie) => cookie.match('csrftoken='))
                     .split(';')[0].split('=')[1];
-                console.log(csrftoken);
                 let mid = response.headers['set-cookie'].find((cookie) => cookie.match('mid='))
                     .split(';')[0].split('=')[1];
                 const headers = {
@@ -32,11 +34,9 @@ class Instagram {
                     'referer': endpoints_1.default.BASE_URL + '/',
                     'x-csrftoken': csrftoken,
                     'X-CSRFToken': csrftoken,
-                    //'user-agent': userAgent.Instagram_155_in_Android_9_Samsung_SM_A102U
-                    'user-agent': userAgents_1.default.ChromeDesktop
+                    'user-agent': this.userAgent
                 };
                 const payload = `username=${username}&enc_password=${encodeURIComponent(`#PWD_INSTAGRAM_BROWSER:0:${Math.ceil((new Date().getTime() / 1000))}:${password}`)}`;
-                console.log(payload);
                 response = yield axios_1.default({
                     method: 'post',
                     url: endpoints_1.default.LOGIN_URL,
@@ -51,9 +51,6 @@ class Instagram {
                 }
                 else {
                     console.log('Success in login');
-                    console.log(response.data);
-                    console.log(response.headers);
-                    //{"3D64224D-5397-407E-9084-CF16C7D6C5E3","rur":"PRN","sessionid":"40017536730%3ApAfLjbLn5dNrpo%3A14","mid":"X4YaeQAEAAGtA9-_h64tX_WDna0D"}
                     csrftoken = response.headers['set-cookie'].find((cookie) => cookie.match('csrftoken='))
                         .split(';')[0];
                     let ds_user_id = response.headers['set-cookie'].find((cookie) => cookie.match('ds_user_id='))
@@ -79,8 +76,79 @@ class Instagram {
                 }
             }
             catch (error) {
-                throw error;
+                console.log(error);
+                if (error.response.data.message = 'checkpoint_required') {
+                    console.log('Account blocked');
+                }
             }
+        });
+    }
+    generateHeaders() {
+        const cookiesJson = require('../sessions/gabriel.levistiky.json');
+        let cookies = '';
+        Object.keys(cookiesJson).forEach(key => {
+            cookies += `${key}=${cookiesJson[key]}; `;
+        });
+        const csrf = cookiesJson['csrftoken'];
+        const headers = {
+            'cookie': cookies,
+            'referer': endpoints_1.default.BASE_URL + '/',
+            'x-csrftoken': csrf,
+            'user-agent': this.userAgent
+        };
+        return headers;
+    }
+    getIdByUsername(username) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const headers = this.generateHeaders();
+                const response = yield axios_1.default({
+                    method: 'get',
+                    url: endpoints_1.default.ACCOUNT_JSON_INFO(username),
+                    headers
+                });
+                return response.data.graphql.user.id;
+            }
+            catch (error) {
+                console.log('Error in getIdByUsername');
+                console.log(error);
+            }
+        });
+    }
+    followByUsername(username) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const headers = this.generateHeaders();
+                const id = yield this.getIdByUsername(username);
+                console.log(id);
+                const url = endpoints_1.default.FOLLOW_URL(id);
+                console.log(url);
+                const response = yield axios_1.default({
+                    method: 'post',
+                    url: url,
+                    headers
+                });
+                if (response.status == 200) {
+                    console.log(`Sucess in following the ${username}`);
+                }
+                else {
+                    console.log(response);
+                }
+            }
+            catch (error) {
+                console.log('Error in followByUsername');
+                console.log(error);
+            }
+        });
+    }
+    getIdByShortcode() {
+        return __awaiter(this, void 0, void 0, function* () {
+        });
+    }
+    likeByShortcode(shortcode) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const headers = this.generateHeaders();
+            const id = ;
         });
     }
 }

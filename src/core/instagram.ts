@@ -4,34 +4,33 @@ import axios from 'axios'
 
 
 import endpoints from './endpoints'
-import userAgent from './userAgents'
+import userAgents from './userAgents'
 
 
 
 class Instagram {
-    async login(username: String, password: String, saveSession=false) {
+    private userAgent = userAgents.ChromeDesktop
+
+    public async login(username: String, password: String, saveSession = false) {
         try {
             let response = await axios.get(endpoints.BASE_URL)
 
             let csrftoken = response.headers['set-cookie'].find((cookie: String) => cookie.match('csrftoken='))
-                .split(';')[0].split('=')[1]           
+                .split(';')[0].split('=')[1]
 
-                console.log(csrftoken)
             let mid = response.headers['set-cookie'].find((cookie: String) => cookie.match('mid='))
                 .split(';')[0].split('=')[1]
-                
-            
+
             const headers = {
                 'cookie': `ig_cb=1; csrftoken=${csrftoken}; mid=${mid};`,
                 'referer': endpoints.BASE_URL + '/',
                 'x-csrftoken': csrftoken,
                 'X-CSRFToken': csrftoken,
-                //'user-agent': userAgent.Instagram_155_in_Android_9_Samsung_SM_A102U
-                'user-agent': userAgent.ChromeDesktop
+                'user-agent': this.userAgent
             }
 
             const payload = `username=${username}&enc_password=${encodeURIComponent(`#PWD_INSTAGRAM_BROWSER:0:${Math.ceil((new Date().getTime() / 1000))}:${password}`)}`
-            console.log(payload)
+
             response = await axios({
                 method: 'post',
                 url: endpoints.LOGIN_URL,
@@ -45,23 +44,21 @@ class Instagram {
                 throw { error: 'Password is wrong' }
             } else {
                 console.log('Success in login')
-                console.log(response.data)
-                console.log(response.headers)
-                //{"3D64224D-5397-407E-9084-CF16C7D6C5E3","rur":"PRN","sessionid":"40017536730%3ApAfLjbLn5dNrpo%3A14","mid":"X4YaeQAEAAGtA9-_h64tX_WDna0D"}
+
                 csrftoken = response.headers['set-cookie'].find((cookie: String) => cookie.match('csrftoken='))
-                .split(';')[0]  
+                    .split(';')[0]
 
                 let ds_user_id = response.headers['set-cookie'].find((cookie: String) => cookie.match('ds_user_id='))
-                .split(';')[0].split('=')[1]
+                    .split(';')[0].split('=')[1]
 
                 let ig_did = response.headers['set-cookie'].find((cookie: String) => cookie.match('ig_did='))
-                .split(';')[0].split('=')[1] 
+                    .split(';')[0].split('=')[1]
 
                 let rur = response.headers['set-cookie'].find((cookie: String) => cookie.match('rur='))
-                .split(';')[0].split('=')[1]
+                    .split(';')[0].split('=')[1]
 
                 let sessionid = response.headers['set-cookie'].find((cookie: String) => cookie.match('sessionid='))
-                .split(';')[0].split('=')[1]
+                    .split(';')[0].split('=')[1]
 
                 const cookies = {
                     csrftoken,
@@ -72,19 +69,88 @@ class Instagram {
                     mid
                 }
 
-                if(saveSession){
+                if (saveSession) {
                     fs.writeFileSync(path.resolve(__dirname, `../sessions/${username}.json`), JSON.stringify(cookies))
                 }
 
                 return cookies
             }
-
-
-
-
         } catch (error) {
-            throw error
+            console.log(error)
+            if (error.response.data.message = 'checkpoint_required') {
+                console.log('Account blocked')
+            }
         }
+    }
+
+    private generateHeaders() {
+        const cookiesJson = require('../sessions/gabriel.levistiky.json')
+        let cookies = ''
+
+        Object.keys(cookiesJson).forEach(key => {
+            cookies += `${key}=${cookiesJson[key]}; `
+        })
+
+        const csrf = cookiesJson['csrftoken']
+
+        const headers = {
+            'cookie': cookies,
+            'referer': endpoints.BASE_URL + '/',
+            'x-csrftoken': csrf,
+            'user-agent': this.userAgent
+        }
+
+        return headers
+    }
+
+    public async getIdByUsername(username: String) {
+        try {
+            const headers = this.generateHeaders()
+            const response = await axios({
+                method: 'get',
+                url: endpoints.ACCOUNT_JSON_INFO(username),
+                headers
+            })
+
+            return response.data.graphql.user.id
+        } catch (error) {
+            console.log('Error in getIdByUsername')
+            console.log(error)
+        }
+    }
+
+    public async followByUsername(username: String) {
+        try {
+            const headers = this.generateHeaders()
+            const id = await this.getIdByUsername(username)
+            console.log(id)
+
+            const url = endpoints.FOLLOW_URL(id)
+            console.log(url)
+            const response = await axios({
+                method: 'post',
+                url: url,
+                headers
+            })
+
+            if(response.status == 200){
+                console.log(`Sucess in following the ${username}`)
+            } else {
+                console.log(response)
+            }            
+        } catch (error) {
+            console.log('Error in followByUsername')
+            console.log(error)
+        }
+    }
+
+    private async getIdByShortcode(){
+        
+    }
+
+    private async likeByShortcode(shortcode: String){
+        const headers = this.generateHeaders()
+        const id = ''
     }
 }
 

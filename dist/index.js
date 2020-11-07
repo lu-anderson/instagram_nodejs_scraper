@@ -14,8 +14,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const instagram_1 = __importDefault(require("./core/instagram"));
 (() => __awaiter(void 0, void 0, void 0, function* () {
-    const instagram = new instagram_1.default();
+    const instagram = new instagram_1.default('amandasully.van', 'smile3030big');
     //await instagram.login('juliana_dardinha', 'esqueceucontato', true).catch(e => console.error(e))
-    yield instagram.followByUsername('bestall.carlos');
+    yield instagram.login();
+    yield instagram.followByUsername('juliana_dardinha');
     //console.log(await instagram.getIdByUsername('rafael_rigoz'))
 }))();

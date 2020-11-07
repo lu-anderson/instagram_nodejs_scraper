@@ -7,18 +7,25 @@ import endpoints from './endpoints'
 import userAgents from './userAgents'
 
 
-
+interface Cookies {
+    csrftoken: string,
+    ds_user_id: string,
+    ig_did: string,
+    rur: string,
+    sessionid: string,
+    mid: string
+}
 class Instagram {
     private userAgent = userAgents.ChromeDesktop
 
-    public async login(username: String, password: String, saveSession = false) {
+    public async login(username: string, password: string, saveSession = false) {
         try {
             let response = await axios.get(endpoints.BASE_URL)
 
-            let csrftoken = response.headers['set-cookie'].find((cookie: String) => cookie.match('csrftoken='))
+            let csrftoken = response.headers['set-cookie'].find((cookie: string) => cookie.match('csrftoken='))
                 .split(';')[0].split('=')[1]
 
-            let mid = response.headers['set-cookie'].find((cookie: String) => cookie.match('mid='))
+            let mid = response.headers['set-cookie'].find((cookie: string) => cookie.match('mid='))
                 .split(';')[0].split('=')[1]
 
             const headers = {
@@ -60,7 +67,7 @@ class Instagram {
                 let sessionid = response.headers['set-cookie'].find((cookie: String) => cookie.match('sessionid='))
                     .split(';')[0].split('=')[1]
 
-                const cookies = {
+                const cookies: Cookies = {
                     csrftoken,
                     ds_user_id,
                     ig_did,
@@ -70,7 +77,7 @@ class Instagram {
                 }
 
                 if (saveSession) {
-                    fs.writeFileSync(path.resolve(__dirname, `../sessions/${username}.json`), JSON.stringify(cookies))
+                    await this.saveSession(username, cookies)
                 }
 
                 return cookies
@@ -81,6 +88,15 @@ class Instagram {
                 console.log('Account blocked')
             }
         }
+    }
+
+    public async saveSession(username: string, cookies: Cookies) {
+        return new Promise<void>((resolve, reject) => {
+            fs.writeFile(path.join(path.resolve(__dirname, `../sessions/${username}.json`)), JSON.stringify(cookies), (err) => {
+                if (err) reject(reject)
+                resolve()
+            })
+        })
     }
 
     private generateHeaders() {
@@ -111,44 +127,47 @@ class Instagram {
                 url: endpoints.ACCOUNT_JSON_INFO(username),
                 headers
             })
+            const id: number = response.data.graphql.user.id
 
-            return response.data.graphql.user.id
+            return id
         } catch (error) {
-            console.log('Error in getIdByUsername')
-            console.log(error)
+            throw new Error('Error in getIdByUsername')
         }
     }
 
+    public async followByUserID(id: number) {
+        const headers = this.generateHeaders()
+        const url = endpoints.FOLLOW_URL(id)
+        console.log(url)
+        const response = await axios({
+            method: 'post',
+            url: url,
+            headers
+        })
+
+        if (response.status == 200) {
+            console.log(`Sucess in following`)
+        } else {
+            console.log(response)
+        }
+    }
     public async followByUsername(username: String) {
         try {
-            const headers = this.generateHeaders()
             const id = await this.getIdByUsername(username)
-            console.log(id)
+            await this.followByUserID(id)
 
-            const url = endpoints.FOLLOW_URL(id)
-            console.log(url)
-            const response = await axios({
-                method: 'post',
-                url: url,
-                headers
-            })
 
-            if(response.status == 200){
-                console.log(`Sucess in following the ${username}`)
-            } else {
-                console.log(response)
-            }            
         } catch (error) {
             console.log('Error in followByUsername')
             console.log(error)
         }
     }
 
-    private async getIdByShortcode(){
-        
+    private async getIdByShortcode() {
+
     }
 
-    private async likeByShortcode(shortcode: String){
+    private async likeByShortcode(shortcode: String) {
         const headers = this.generateHeaders()
         const id = ''
     }

@@ -207,8 +207,10 @@ class Instagram {
     
             if (response.status == 200) {
                 console.log(`Success in following`)
+                return true
             } else {
                 console.log(response)
+                return false
             }
         } catch (error) {
             throw error

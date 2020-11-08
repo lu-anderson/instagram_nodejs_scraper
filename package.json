@@ -18,7 +18,8 @@
   },
   "homepage": "https://github.com/lu-anderson/instagram_nodejs_scraper#readme",
   "dependencies": {
-    "axios": "^0.20.0"
+    "axios": "^0.20.0",
+    "https-proxy-agent": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^14.11.8"
